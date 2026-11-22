@@ -1,0 +1,23 @@
+name: Build ptr_inject
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (ndk-build, arm64-v8a)
+        run: |
+          NDK="${ANDROID_NDK_LATEST_HOME:-$ANDROID_NDK_HOME}"
+          "$NDK/ndk-build" -j"$(nproc)" \
+            NDK_PROJECT_PATH=src/main \
+            NDK_APPLICATION_MK=src/main/jni/Application.mk \
+            APP_BUILD_SCRIPT=src/main/jni/Android.mk
+          mkdir -p out && cp src/main/libs/arm64-v8a/ptr_inject.sh out/
+        working-directory: Injector
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ptr_inject
+          path: Injector/out/ptr_inject.sh
